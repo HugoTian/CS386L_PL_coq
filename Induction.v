@@ -154,9 +154,9 @@ Qed.
 (** **** Exercise: 2 stars (double_plus)  *)
 (** Consider the following function, which doubles its argument: *)
 
-Fixpoint double (n:nat) :=
+Fixpoint double (n:nat) : nat :=
   match n with
-  | O => O
+  | 0 => 0
   | S n' => S (S (double n'))
   end.
 
@@ -176,6 +176,8 @@ Qed.
     about [evenb n] harder when done by induction on [n], since we may
     need an induction hypothesis about [n - 2]. The following lemma
     gives a better characterization of [evenb (S n)]: *)
+
+Compute evenb 4.
 
 Theorem evenb_S : forall n : nat,
   evenb (S n) = negb (evenb n).

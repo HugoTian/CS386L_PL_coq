@@ -1236,19 +1236,19 @@ Fixpoint bin_to_nat (d : bin) : nat :=
   end.
 
 Example test_bin_incr1 : incr O = D' O .
-Proof. simpl. reflexivity.
+Proof. simpl. reflexivity. Qed.
 
 Example test_bin_incr2 : incr (D' O) = D (D' O) .
-Proof. simpl. reflexivity.
+Proof. simpl. reflexivity. Qed.
 
 Example test_bin_incr3 : bin_to_nat(incr (D (D' O)) )= 3 .
-Proof. simpl. reflexivity.
+Proof. simpl. reflexivity. Qed.
 
 Example test_bin_incr4 : bin_to_nat (incr (D' (D' O))) = 4 .
-Proof. simpl. reflexivity.
+Proof. simpl. reflexivity. Qed.
 
 Example test_bin_incr5 : bin_to_nat (incr ( D (D' (D' O)) )) = 7.
-Proof. simpl. reflexivity.
+Proof. simpl. reflexivity. Qed.
 (** [] *)
 
 (** $Date: 2016-07-13 12:41:41 -0400 (Wed, 13 Jul 2016) $ *)
