@@ -1231,10 +1231,8 @@ Fixpoint incr (d : bin) : bin :=
 Fixpoint bin_to_nat (d : bin) : nat :=
   match d with
   | O => 0
-  | D' O => 1
-  | D O => 0
   | D d' => (bin_to_nat d') * 2
-  | D' d' => (bin_to_nat d') * 2 + 1
+  | D' d' => S((bin_to_nat d') * 2)
   end.
 
 Example test_bin_incr1 : incr O = D' O .
