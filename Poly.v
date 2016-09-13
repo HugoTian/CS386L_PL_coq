@@ -1023,6 +1023,20 @@ Proof.
    forall X n l, length l = n -> @nth_error X l n = None
 
 (* FILL IN HERE *)
+    Induction on l
+    
+    Assume l is [] ,then n = length [] = 0. then nth_error x [] 0 will 
+    return None based on the definition of nth_error
+    
+    Next, assume forall X n' l', where n' = length l', and nth_error X l' n' = None
+    
+    Then for l = x :: l', and n = length(l) . Apparently, n is not 0,
+    and nth_error (x :: l', n) will match "a::l'" condition. Since n is not zero
+    nth_error (x::l', n) = nth_error(l', n-1). It is easy to show that
+    n' = n-1, then based on assumption nth_error(l', n-1) = None.
+    
+    Based on that,
+      forall X n l, length l = n -> @nth_error X l n = None
 *)
 (** [] *)
 
