@@ -594,7 +594,13 @@ Proof.
 Theorem beq_nat_true : forall n m,
     beq_nat n m = true -> n = m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n. induction n as [ |n'].
+  - intros m eq. destruct m as [| m'].
+    + reflexivity.
+    + inversion eq.
+  - intros m eq. destruct m as [|m'].
+     + inversion eq.
+     + apply IHn' in eq. rewrite -> eq. reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, advanced (beq_nat_true_informal)  *)
@@ -821,7 +827,7 @@ Qed.
 
 Definition bar x :=
   match x with
-  | O => 5
+  | 0  => 5
   | S _ => 5
   end.
 
@@ -921,7 +927,11 @@ Theorem combine_split : forall X Y (l : list (X * Y)) l1 l2,
   split l = (l1, l2) ->
   combine l1 l2 = l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X Y. induction l as [ | [x y] l'].
+  -  intros l1 l2 H. inversion H. reflexivity.
+  - intros l1 l2 H. simpl in H. inversion H. simpl. rewrite ->IHl'.
+   + reflexivity.
+   + unfold split. destruct l' as [ | ]. reflexivity. reflexivity.
 (** [] *)
 
 (** However, [destruct]ing compound expressions requires a bit of
