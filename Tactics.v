@@ -78,7 +78,8 @@ Theorem silly_ex :
      evenb 3 = true ->
      oddb 4 = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n leq1.
+  apply leq1. Qed.
 (** [] *)
 
 (** To use the [apply] tactic, the (conclusion of the) fact
@@ -117,13 +118,25 @@ Theorem rev_exercise1 : forall (l l' : list nat),
      l = rev l' ->
      l' = rev l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros l l' eq1.
+rewrite <- rev_involutive.
+rewrite -> eq1.
+rewrite -> rev_involutive.
+symmetry.
+apply rev_involutive. Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, optional (apply_rewrite)  *)
 (** Briefly explain the difference between the tactics [apply] and
     [rewrite].  What are the situations where both can usefully be
     applied?
+    
+    apply : do the same as rewrite -> and reflexivity. there is no way to apply from 
+            right to left(can be done after symmetry).
+    rewrite : simply rewrite the equation based on the previously defined lemmas or assumption
+            did not do the reflexivity. Can apply from left to right and from right
+            to left
+
 
 (* FILL IN HERE *)
 *)
@@ -184,7 +197,9 @@ Example trans_eq_exercise : forall (n m o p : nat),
      (n + p) = m ->
      (n + p) = (minustwo o).
 Proof.
-  (* FILL IN HERE *) Admitted.
+     intros m n o p eq1 eq2.
+     apply trans_eq with n. apply eq2. apply eq1. Qed.
+     
 (** [] *)
 
 (* ################################################################# *)
@@ -259,7 +274,8 @@ Example inversion_ex3 : forall (X : Type) (x y z : X) (l j : list X),
   y :: l = x :: j ->
   x = y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+   intros X x y z l j H1 H2. inversion H1. inversion H2. symmetry. 
+   apply H0. Qed.
 (** [] *)
 
 (** While the injectivity of constructors allows us to reason
@@ -308,7 +324,7 @@ Proof.
     entails anything, even false things.  For instance: *)
 
 Theorem inversion_ex4 : forall (n : nat),
-  S n = O ->
+  S n = 0 ->
   2 + 2 = 5.
 Proof.
   intros n contra. inversion contra. Qed.
@@ -333,7 +349,7 @@ Example inversion_ex6 : forall (X : Type)
   y :: l = z :: j ->
   x = z.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X x y z l j eq1 eq2. inversion eq1. Qed.
 (** [] *)
 
 (** To summarize this discussion, suppose [H] is a hypothesis in the
@@ -415,7 +431,13 @@ Theorem plus_n_n_injective : forall n m,
      n = m.
 Proof.
   intros n. induction n as [| n'].
-    (* FILL IN HERE *) Admitted.
+  - intros m H. simpl in H. destruct m as [ | m']. { simpl in H. reflexivity. }
+    {  inversion H. }
+  - intros m H. destruct m as [ | m'] . { inversion H. } 
+    {  simpl in H. inversion H. rewrite <- plus_n_Sm in H1.
+      rewrite <- plus_n_Sm in H1. inversion H1. apply IHn' in H2. rewrite -> H2. reflexivity. 
+      }
+  Qed.
 (** [] *)
 
 (* ################################################################# *)
