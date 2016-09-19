@@ -148,7 +148,11 @@ Qed.
 Example and_exercise :
   forall n m : nat, n + m = 0 -> n = 0 /\ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
+   intros n m H. apply and_intro.
+   -destruct n. reflexivity. inversion H.
+   -destruct m. reflexivity. rewrite <- plus_n_Sm in H. inversion H.
+   Qed.
+
 (** [] *)
 
 (** So much for proving conjunctive statements.  To go in the other
@@ -222,7 +226,7 @@ Proof.
 Lemma proj2 : forall P Q : Prop,
   P /\ Q -> Q.
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros P Q [Hp Hq]. apply Hq. Qed.
 (** [] *)
 
 (** Finally, we sometimes need to rearrange the order of conjunctions
@@ -249,7 +253,10 @@ Theorem and_assoc : forall P Q R : Prop,
   P /\ (Q /\ R) -> (P /\ Q) /\ R.
 Proof.
   intros P Q R [HP [HQ HR]].
-(* FILL IN HERE *) Admitted.
+   split. 
+   - split. apply HP. apply HQ.
+   - apply HR.
+Qed.
 (** [] *)
 
 (** By the way, the infix notation [/\] is actually just syntactic
@@ -319,14 +326,20 @@ Qed.
 Lemma mult_eq_0 :
   forall n m, n * m = 0 -> n = 0 \/ m = 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n m H. destruct n.
+ - left. reflexivity.
+ - destruct m. right. reflexivity.  inversion H. Qed.
 (** [] *)
 
 (** **** Exercise: 1 star (or_commut)  *)
 Theorem or_commut : forall P Q : Prop,
   P \/ Q  -> Q \/ P.
-Proof.
-  (* FILL IN HERE *) Admitted.
+Proof. intros P Q [HP | HQ].
+ - right. apply HP.
+ - left. apply HQ.
+Qed.
+
+
 (** [] *)
 
 (* ================================================================= *)
@@ -435,6 +448,10 @@ Proof.
 
    _Proof_:
 (* FILL IN HERE *)
+     P implies ~~P means P imples not ( not P ).
+    while means P imples not P imples False.
+    Now the goal is , given p is true, then prove that not p is false.
+    by the definition of not, the goal is hold for proposition p.
    []
 *)
 
@@ -442,21 +459,28 @@ Proof.
 Theorem contrapositive : forall P Q : Prop,
   (P -> Q) -> (~Q -> ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+    intros P Q H. unfold not.
+   intros G G1. apply H in G1. apply G in G1. apply G1.
+Qed.
 (** [] *)
 
 (** **** Exercise: 1 star (not_both_true_and_false)  *)
 Theorem not_both_true_and_false : forall P : Prop,
   ~ (P /\ ~P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros P. unfold not. intros [H1 H2]. apply H2 in H1. apply H1.
+Qed.
 (** [] *)
 
 (** **** Exercise: 1 star, advanced (informal_not_PNP)  *)
 (** Write an informal proof (in English) of the proposition [forall P
     : Prop, ~(P /\ ~P)]. *)
-
-(* FILL IN HERE *)
+         
+(* For informal proof , for all proposition P , not (P and not P ) implies False
+   then based on the definition of conjunctions and not. p and not p , 
+   implies not (p and not p) is false. since not p, then p is false. Since false can
+alway imples false, then the proof is finished.
+  *)
 (** [] *)
 
 (** Similarly, since inequality involves a negation, it requires a
@@ -474,6 +498,7 @@ Proof.
   intros [] H.
   - (* b = true *)
     unfold not in H.
+    Check ex_falso_quodlibet.
     apply ex_falso_quodlibet.
     apply H. reflexivity.
   - (* b = false *)
@@ -547,6 +572,7 @@ Proof.
     intros H. rewrite H. intros H'. inversion H'.
 Qed.
 
+
 (** **** Exercise: 1 star, optional (iff_properties)  *)
 (** Using the above proof that [<->] is symmetric ([iff_sym]) as
     a guide, prove that it is also reflexive and transitive. *)
@@ -554,19 +580,29 @@ Qed.
 Theorem iff_refl : forall P : Prop,
   P <-> P.
 Proof.
-  (* FILL IN HERE *) Admitted.
+    intros P. split.  intros H.  apply H. 
+    intros H. apply H. Qed.
 
 Theorem iff_trans : forall P Q R : Prop,
   (P <-> Q) -> (Q <-> R) -> (P <-> R).
 Proof.
-  (* FILL IN HERE *) Admitted.
+   intros P Q R. intros [H1 H2] [H3 H4]. split.
+   -intros H5. apply H3. apply H1. apply H5.
+   - intros H5. apply H2. apply H4. apply H5.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (or_distributes_over_and)  *)
 Theorem or_distributes_over_and : forall P Q R : Prop,
   P \/ (Q /\ R) <-> (P \/ Q) /\ (P \/ R).
 Proof.
-  (* FILL IN HERE *) Admitted.
+   intros  P Q R. split.
+   - intros [H | [H1  H2]]. split. left. apply H. left. apply H.
+     split. right. apply H1. right. apply H2. 
+   - intros [[H1 | H2] [H3 | H4]]. 
+       left. apply H1. left. apply H1. left. apply H3. right. 
+       split. apply H2. apply H4.
+Qed.
 (** [] *)
 
 (** Some of Coq's tactics treat [iff] statements specially, avoiding
