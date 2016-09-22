@@ -1290,12 +1290,26 @@ Proof. apply even_bool_prop. reflexivity. Qed.
 Lemma andb_true_iff : forall b1 b2:bool,
   b1 && b2 = true <-> b1 = true /\ b2 = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros b1 b2. split.
+  - destruct b1. 
+    + destruct b2.  intros H. split. reflexivity. reflexivity. intros H. inversion H.
+    + destruct b2. intros H. inversion H. intros H. inversion H.
+  - destruct b1.
+    + destruct b2. intros H.  reflexivity. intros [H1 H2]. inversion H2.
+    + destruct b2. intros H. inversion H. inversion H0. intros H. inversion H. inversion H0.
+Qed.
 
 Lemma orb_true_iff : forall b1 b2,
   b1 || b2 = true <-> b1 = true \/ b2 = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+   intros b1 b2. split.
+   - destruct b1. 
+     + intros H. left. reflexivity. 
+     + intros H. right. apply H.
+   -  destruct b1.
+    + intros [H1 |H2].  reflexivity. reflexivity.
+    + intros [H1 | H2]. inversion H1. apply H2.
+Qed. 
 (** [] *)
 
 (** **** Exercise: 1 star (beq_nat_false_iff)  *)
@@ -1306,7 +1320,31 @@ Proof.
 Theorem beq_nat_false_iff : forall x y : nat,
   beq_nat x y = false <-> x <> y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+Proof.
+  intros x. induction x as [| x' IH].
+  - destruct y as [| y'].
+    + simpl. split.
+      * intros H. inversion H.
+      * intros contra.
+        assert (H: 0 = 0).
+        { reflexivity. }
+        apply contra in H.
+        inversion H.
+    + simpl. split.
+      * intros H contra. inversion contra.
+      * reflexivity.
+  - destruct y as [| y'].
+    + simpl. split.
+      * intros H contra. inversion contra.
+      * reflexivity.
+    + simpl. rewrite -> IH.
+      split.
+      * intro H. intro contra. apply H.
+        inversion contra. reflexivity.
+      * intro H. intro contra. apply H.
+        rewrite -> contra. reflexivity.
+Qed.
+ 
 (** [] *)
 
 (** **** Exercise: 3 stars (beq_list)  *)
@@ -1317,15 +1355,30 @@ Proof.
     definition is correct, prove the lemma [beq_list_true_iff]. *)
 
 Fixpoint beq_list {A} (beq : A -> A -> bool)
-                  (l1 l2 : list A) : bool 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
+                  (l1 l2 : list A) : bool :=
+  match l1 , l2 with
+  | [], [] => true 
+  | x1 :: x, y1 :: y => if beq x1 y1 then beq_list beq x y else false
+  | _, _ => false
+  end.
 
 Lemma beq_list_true_iff :
   forall A (beq : A -> A -> bool),
     (forall a1 a2, beq a1 a2 = true <-> a1 = a2) ->
     forall l1 l2, beq_list beq l1 l2 = true <-> l1 = l2.
 Proof.
-(* FILL IN HERE *) Admitted.
+   intros A beq H2.
+   induction l1 as [ | x l].
+   - destruct l2 as [ | x1 l1].
+      + split. simpl. reflexivity. reflexivity.
+      + simpl. split. intros contra. inversion contra. intros contra. inversion contra.
+   - destruct l2 as [ | x2 l2].
+      + split. simpl. intros contra. inversion contra. intros contra. inversion contra.
+      + split. intros H. apply andb_true_iff in H. destruct H as [H1 H3]. apply H2 in H1. apply IHl in H3.
+         rewrite -> H1. rewrite -> H3 . reflexivity.
+        intros H.  apply andb_true_iff. split. apply H2 . inversion H. reflexivity.
+        apply IHl. inversion H. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, recommended (All_forallb)  *)
@@ -1344,7 +1397,22 @@ Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
 Theorem forallb_true_iff : forall X test (l : list X),
    forallb test l = true <-> All (fun x => test x = true) l.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros X test l. split.
+  - induction l as [| x l' IH].
+    + simpl. reflexivity.
+    + simpl. intros H.
+      apply andb_true_iff in H.
+      inversion H.
+      split.
+      * apply H0.
+      * apply IH in H1. apply H1.
+  - induction l as [| x l' IH].
+    + simpl. reflexivity.
+    + simpl. intros [H0 H1].
+      rewrite -> H0.
+      apply IH in H1. rewrite -> H1.
+      reflexivity.  
+Qed.
 
 (** Are there any important properties of the function [forallb] which
     are not captured by your specification? *)
@@ -1464,7 +1532,9 @@ Qed.
 Theorem excluded_middle_irrefutable:  forall (P:Prop),
   ~ ~ (P \/ ~ P).
 Proof.
-  (* FILL IN HERE *) Admitted.
+intros P. intros H. unfold not in H. apply H. right. intros. apply H.
+right. intros. apply H. left. apply H0.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (not_exists_dist)  *)
