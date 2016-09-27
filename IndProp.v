@@ -127,7 +127,10 @@ Qed.
 Theorem ev_double : forall n,
   ev (double n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction n.  
+   - apply ev_0.
+   - simpl. apply ev_SS. apply IHn.
+Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -288,12 +291,14 @@ Proof.
 Theorem SSSSev__even : forall n,
   ev (S (S (S (S n)))) -> ev n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros n H . inversion H as [| n' E'].
+  apply evSS_ev . apply E'.
+Qed.
 
 Theorem even5_nonsense :
   ev 5 -> 2 + 2 = 9.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros H. inversion H. inversion H1. inversion H3. Qed.
 (** [] *)
 
 (** The way we've used [inversion] here may seem a bit
@@ -417,7 +422,8 @@ Qed.
 (** **** Exercise: 2 stars (ev_sum)  *)
 Theorem ev_sum : forall n m, ev n -> ev m -> ev (n + m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction H. simpl. apply H0. simpl. apply ev_SS. apply IHev.
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (ev_alternate)  *)
@@ -435,7 +441,13 @@ Inductive ev' : nat -> Prop :=
 
 Theorem ev'_ev : forall n, ev' n <-> ev n.
 Proof.
- (* FILL IN HERE *) Admitted.
+intros. split.
+ -intros H. induction H. apply ev_0. apply ev_SS. apply ev_0. apply ev_sum.
+apply IHev'1. apply IHev'2.
+ - intros H. induction H. apply ev'_0. assert (SS : S (S n) = 2 + n). {reflexivity. } 
+ rewrite SS. apply ev'_sum. apply ev'_2. apply IHev.
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced, recommended (ev_ev__ev)  *)
@@ -445,7 +457,8 @@ Proof.
 Theorem ev_ev__ev : forall n m,
   ev (n+m) -> ev n -> ev m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  intros. induction H0. simpl in H. apply H. 
+  inversion H. apply IHev. apply H2. Qed. 
 (** [] *)
 
 (** **** Exercise: 3 stars, optional (ev_plus_plus)  *)
