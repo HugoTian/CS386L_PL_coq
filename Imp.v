@@ -439,7 +439,7 @@ Qed.
     as elegant as possible. *)
 
 Fixpoint optimize_0plus_b (b : bexp) : bexp 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
+    . Admitted.
 
 Theorem optimize_0plus_b_sound : forall b,
   beval (optimize_0plus_b b) = beval b.
