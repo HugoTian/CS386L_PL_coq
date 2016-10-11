@@ -438,13 +438,20 @@ Qed.
     it is sound.  Use the tacticals we've just seen to make the proof
     as elegant as possible. *)
 
-Fixpoint optimize_0plus_b (b : bexp) : bexp 
-    . Admitted.
+Fixpoint optimize_0plus_b (b : bexp) : bexp :=
+  match b with
+    | BEq a1 a2 => BEq (optimize_0plus a1) (optimize_0plus a2)
+    | BLe a1 a2 => BLe (optimize_0plus a1) (optimize_0plus a2)
+    | _ => b
+  end.
 
 Theorem optimize_0plus_b_sound : forall b,
   beval (optimize_0plus_b b) = beval b.
 Proof.
-  (* FILL IN HERE *) Admitted.
+induction b;
+try (simpl; repeat(rewrite -> optimize_0plus_sound) ; reflexivity ).
+Qed.
+
 (** [] *)
 
 (** **** Exercise: 4 stars, optional (optimizer)  *)
@@ -750,10 +757,36 @@ Qed.
 (** Write a relation [bevalR] in the same style as
     [aevalR], and prove that it is equivalent to [beval].*)
 
-(* 
-Inductive bevalR:
-(* FILL IN HERE *)
-*)
+Reserved Notation "e '\=' n" (at level 50, left associativity).
+
+Inductive bevalR : bexp -> bool -> Prop :=
+| E_BTrue : BTrue \= true
+| E_BFalse : BFalse \= false
+| E_BEq : forall a1 a2 n1 n2, (a1 \\ n1) -> (a2 \\ n2) -> (BEq a1 a2) \= (beq_nat n1 n2)
+| E_BLe : forall a1 a2 n1 n2, (a1 \\ n1) -> (a2 \\ n2) -> (BLe a1 a2) \= (leb n1 n2)
+| E_BNot : forall b b', b \= b' -> (BNot b) \= (negb b')
+| E_BAnd : forall b1 b2 b1' b2', (b1 \= b1') -> (b2 \= b2') -> (BAnd b1 b2) \= (andb b1' b2')
+
+  where "e '\=' b" := (bevalR e b) : type_scope.
+
+Theorem beval_iff_bevalR : forall b b',
+       (b \= b') <-> beval b = b'.
+
+Proof.
+  split.
+  - intros H; induction H;
+    try (simpl;
+         try (rewrite -> aeval_iff_aevalR in H;
+              rewrite -> aeval_iff_aevalR in H0);
+         subst; reflexivity).
+  - generalize dependent b'.
+    induction b; simpl; intros; subst; constructor;
+    try (rewrite -> aeval_iff_aevalR; reflexivity).
+    + apply IHb. reflexivity.
+    + apply IHb1. reflexivity.
+    + apply IHb2. reflexivity.
+Qed.
+
 (** [] *)
 
 End AExp.
@@ -895,7 +928,7 @@ Inductive aexp : Type :=
   | APlus : aexp -> aexp -> aexp
   | AMinus : aexp -> aexp -> aexp
   | AMult : aexp -> aexp -> aexp.
-
+ 
 (** Defining a few variable names as notational shorthands will make
     examples easier to read: *)
 
@@ -1247,7 +1280,11 @@ Example ceval_example2:
     (X ::= ANum 0;; Y ::= ANum 1;; Z ::= ANum 2) / empty_state \\
     (t_update (t_update (t_update empty_state X 0) Y 1) Z 2).
 Proof.
-  (* FILL IN HERE *) Admitted.
+    apply E_Seq with (t_update empty_state X 0).
+  - apply E_Ass. reflexivity.
+  - apply E_Seq with (t_update (t_update empty_state X 0) Y 1);
+    apply E_Ass; reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, advanced (pup_to_n)  *)
@@ -1256,15 +1293,32 @@ Proof.
    Prove that this program executes as intended for [X] = [2]
    (the latter is trickier than you might expect). *)
 
-Definition pup_to_n : com 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
+Definition pup_to_n : com :=  
+  Y ::= ANum 0;;
+  WHILE BNot (BEq (AId X) (ANum 0)) DO
+    Y ::= APlus (AId Y) (AId X);;
+    X ::= AMinus (AId X) (ANum 1)
+  END.
+
 
 Theorem pup_to_2_ceval :
   pup_to_n / (t_update empty_state X 2) \\
     t_update (t_update (t_update (t_update (t_update (t_update empty_state
       X 2) Y 0) Y 2) X 1) Y 3) X 0.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  unfold pup_to_n.
+  apply E_Seq with (t_update (t_update empty_state X 2) Y 0).
+  apply E_Ass. reflexivity.
+  apply E_WhileLoop with (t_update (t_update (t_update (t_update empty_state X 2) Y 0) Y 2) X 1). reflexivity.
+  apply E_Seq with (t_update (t_update (t_update empty_state X 2) Y 0) Y 2).
+  apply E_Ass. reflexivity.
+  apply E_Ass. reflexivity.
+  apply E_WhileLoop with (t_update (t_update (t_update (t_update (t_update (t_update empty_state X 2) Y 0) Y 2) X 1) Y 3) X 0). reflexivity.
+  apply E_Seq with (t_update (t_update (t_update (t_update (t_update empty_state X 2) Y 0) Y 2) X 1) Y 3).
+  apply E_Ass. reflexivity.
+  apply E_Ass. reflexivity.
+  apply E_WhileEnd. reflexivity.
+Qed.
 (** [] *)
 
 
@@ -1345,8 +1399,13 @@ Proof.
 
 (** **** Exercise: 3 stars, recommended (XtimesYinZ_spec)  *)
 (** State and prove a specification of [XtimesYinZ]. *)
-
-(* FILL IN HERE *)
+Theorem XtimesYinZ_spec : forall st n m st',
+      st X = m ->  st Y = n -> XtimesYinZ / st \\ st' ->
+      st' Z = m * n.
+Proof.
+  intros st n m st' HX HY He.
+  inversion He. subst. clear He. simpl.
+  apply t_update_eq. Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars, recommended (loop_never_stops)  *)
@@ -1362,7 +1421,10 @@ Proof.
       contradictory (and so can be solved in one step with
       [inversion]). *)
 
-  (* FILL IN HERE *) Admitted.
+ induction contra; inversion Heqloopdef.
+  - rewrite -> H1 in H. simpl in H. inversion H.
+  - apply IHcontra2. rewrite -> H1. rewrite -> H2. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 3 stars (no_whilesR)  *)
@@ -1389,12 +1451,29 @@ Fixpoint no_whiles (c : com) : bool :=
 
 Inductive no_whilesR: com -> Prop :=
  (* FILL IN HERE *)
-.
+| no_whilesR_skip: no_whilesR SKIP
+| no_whilesR_assign: forall x a, no_whilesR (x ::= a)
+| no_whilesR_seq: forall c1 c2, no_whilesR c1 -> no_whilesR c2 -> no_whilesR (c1 ;; c2)
+| no_whilesR_if: forall b ct cf, no_whilesR ct -> no_whilesR cf ->
+                             no_whilesR (IFB b THEN ct ELSE cf FI).
+
 
 Theorem no_whiles_eqv:
    forall c, no_whiles c = true <-> no_whilesR c.
 Proof.
-  (* FILL IN HERE *) Admitted.
+  Proof.
+  intro c. split.
+  - intro H.
+    induction c; try constructor; simpl in H;
+    try (rewrite -> andb_true_iff in H;
+         destruct H as [H1 H2];
+         try (apply IHc1; apply H1);
+         try (apply IHc2; apply H2));
+    try inversion H.
+  - intro H.
+    induction H; simpl; try reflexivity;
+    try (rewrite -> IHno_whilesR1; rewrite -> IHno_whilesR2; reflexivity).
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars (no_whiles_terminating)  *)
@@ -1468,27 +1547,54 @@ Inductive sinstr : Type :=
 
 Fixpoint s_execute (st : state) (stack : list nat)
                    (prog : list sinstr)
-                 : list nat 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
+                 : list nat :=
+    match prog with
+    | [] => stack
+    | (SPush n) :: prog' => s_execute st (n :: stack) prog'
+    | (SLoad x) :: prog' => s_execute st ((st x) :: stack) prog'
+    | SPlus :: prog' => (
+        match stack with
+          | n1 :: n2 :: stack' => s_execute st ((n2 + n1) :: stack') prog'
+          | _ => []
+        end)
+    | SMinus :: prog' => (
+        match stack with
+          | n1 :: n2 :: stack' => s_execute st ((n2 - n1) :: stack') prog'
+          | _ => []
+        end)
+    | SMult :: prog' => (
+        match stack with
+          | n1 :: n2 :: stack' => s_execute st ((n2 * n1) :: stack') prog'
+          | _ => []
+        end)
+  end.
+ 
 
 Example s_execute1 :
      s_execute empty_state []
        [SPush 5; SPush 3; SPush 1; SMinus]
    = [2; 5].
-(* FILL IN HERE *) Admitted.
+  
+Proof. intros. simpl. reflexivity. Qed.
 
 Example s_execute2 :
      s_execute (t_update empty_state X 3) [3;4]
        [SPush 4; SLoad X; SMult; SPlus]
    = [15; 4].
-(* FILL IN HERE *) Admitted.
+Proof. intros. simpl. reflexivity. Qed.
 
 (** Next, write a function that compiles an [aexp] into a stack
     machine program. The effect of running the program should be the
     same as pushing the value of the expression on the stack. *)
 
-Fixpoint s_compile (e : aexp) : list sinstr 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
+Fixpoint s_compile (e : aexp) : list sinstr :=
+  match e with
+    | ANum n => [ SPush n ]
+    | AId x => [ SLoad x ]
+    | APlus e1 e2 => (s_compile e1) ++ (s_compile e2) ++ [ SPlus ]
+    | AMinus e1 e2 => (s_compile e1) ++ (s_compile e2) ++ [ SMinus ]
+    | AMult e1 e2 => (s_compile e1) ++ (s_compile e2) ++ [ SMult]
+  end.
 
 (** After you've defined [s_compile], prove the following to test
     that it works. *)
@@ -1496,7 +1602,7 @@ Fixpoint s_compile (e : aexp) : list sinstr
 Example s_compile1 :
     s_compile (AMinus (AId X) (AMult (ANum 2) (AId Y)))
   = [SLoad X; SPush 2; SLoad Y; SMult; SMinus].
-(* FILL IN HERE *) Admitted.
+Proof. intros. simpl. reflexivity. Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced (stack_compiler_correct)  *)
