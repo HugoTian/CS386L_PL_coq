@@ -884,7 +884,7 @@ R38360:38373 Logic <> rev_append_one thm
 R38360:38373 Logic <> rev_append_one thm
 prf 39123:39134 <> evenb_double
 R39164:39166 Coq.Init.Logic <> :type_scope:x_'='_x not
-R39148:39152 Induction <> evenb def
+R39148:39152 Basics <> evenb def
 R39155:39160 Induction <> double def
 R39162:39162 Logic <> k var
 R39167:39170 Basics <> true constr
@@ -893,7 +893,7 @@ R39356:39362 Coq.Init.Logic <> :type_scope:'exists'_x_'..'_x_','_x not
 R39364:39365 Coq.Init.Logic <> :type_scope:'exists'_x_'..'_x_','_x not
 R39367:39369 Coq.Init.Logic <> :type_scope:x_'='_x not
 R39366:39366 Logic <> n var
-R39373:39377 Induction <> evenb def
+R39373:39377 Basics <> evenb def
 R39379:39379 Logic <> n var
 R39416:39416 Coq.Init.Datatypes <> S constr
 R39419:39424 Induction <> double def
@@ -903,13 +903,13 @@ R39393:39393 Logic <> k var
 R39510:39516 Induction <> evenb_S thm
 R39510:39516 Induction <> evenb_S thm
 R39510:39516 Induction <> evenb_S thm
-R39528:39532 Induction <> evenb def
+R39528:39532 Basics <> evenb def
 R39641:39641 Coq.Init.Datatypes <> S constr
 R39641:39641 Coq.Init.Datatypes <> S constr
 prf 39763:39776 <> even_bool_prop
 R39806:39810 Coq.Init.Logic <> :type_scope:x_'<->'_x not
 R39799:39801 Coq.Init.Logic <> :type_scope:x_'='_x not
-R39792:39796 Induction <> evenb def
+R39792:39796 Basics <> evenb def
 R39798:39798 Logic <> n var
 R39802:39805 Basics <> true constr
 R39811:39817 Coq.Init.Logic <> :type_scope:'exists'_x_'..'_x_','_x not
@@ -951,7 +951,7 @@ R43243:43248 Induction <> double def
 R43250:43250 Logic <> k var
 def 43485:43494 <> even_1000'
 R43508:43510 Coq.Init.Logic <> :type_scope:x_'='_x not
-R43498:43502 Induction <> evenb def
+R43498:43502 Basics <> evenb def
 R43511:43514 Basics <> true constr
 def 43727:43737 <> even_1000''
 R43741:43747 Coq.Init.Logic <> :type_scope:'exists'_x_'..'_x_','_x not

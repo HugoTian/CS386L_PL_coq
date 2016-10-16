@@ -176,12 +176,6 @@ Qed.
     about [evenb n] harder when done by induction on [n], since we may
     need an induction hypothesis about [n - 2]. The following lemma
     gives a better characterization of [evenb (S n)]: *)
-Fixpoint evenb (n:nat) : bool :=
-  match n with
-  | 0        => true
-  | S 0      => false
-  | S (S n') => evenb n'
-  end.
 
 Theorem evenb_S : forall n : nat,
   evenb (S n) = negb (evenb n).

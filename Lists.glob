@@ -295,7 +295,7 @@ R8591:8591 Lists <> l var
 R8603:8605 Lists NatList nil constr
 R8610:8612 Lists NatList nil constr
 R8620:8623 Lists NatList ::x_'::'_x not
-R8632:8636 Induction <> evenb def
+R8632:8636 Basics <> evenb def
 R8664:8668 Lists NatList ::x_'::'_x not
 R8681:8681 Lists NatList ::x_'::'_x not
 R8669:8678 Lists <> oddmembers def

@@ -58,13 +58,13 @@ R5237:5241 IndProp <> ev_SS constr
 prf 6823:6834 <> evenb_minus2
 R6863:6866 Coq.Init.Logic <> :type_scope:x_'->'_x not
 R6888:6890 Coq.Init.Logic <> :type_scope:x_'='_x not
-R6867:6871 Induction <> evenb def
+R6867:6871 Basics <> evenb def
 R6874:6877 Coq.Init.Peano <> pred syndef
 R6880:6883 Coq.Init.Peano <> pred syndef
 R6885:6885 IndProp <> n var
 R6891:6894 Basics <> true constr
 R6856:6858 Coq.Init.Logic <> :type_scope:x_'='_x not
-R6849:6853 Induction <> evenb def
+R6849:6853 Basics <> evenb def
 R6855:6855 IndProp <> n var
 R6859:6862 Basics <> true constr
 prf 7386:7394 <> ev_minus2

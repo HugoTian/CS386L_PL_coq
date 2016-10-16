@@ -116,7 +116,7 @@ R2693:2695 Coq.Init.Logic <> :type_scope:x_'='_x not
 R2687:2690 Basics <> oddb def
 R2696:2699 Basics <> true constr
 R2671:2673 Coq.Init.Logic <> :type_scope:x_'='_x not
-R2664:2668 Induction <> evenb def
+R2664:2668 Basics <> evenb def
 R2674:2677 Basics <> true constr
 R2633:2636 Coq.Init.Logic <> :type_scope:x_'->'_x not
 R2647:2649 Coq.Init.Logic <> :type_scope:x_'='_x not
@@ -125,7 +125,7 @@ R2643:2643 Coq.Init.Datatypes <> S constr
 R2645:2645 Tactics <> n var
 R2650:2653 Basics <> true constr
 R2626:2628 Coq.Init.Logic <> :type_scope:x_'='_x not
-R2619:2623 Induction <> evenb def
+R2619:2623 Basics <> evenb def
 R2625:2625 Tactics <> n var
 R2629:2632 Basics <> true constr
 prf 2977:2991 <> silly3_firsttry
