@@ -1065,7 +1065,6 @@ Lemma context_invariance : forall G G' t T,
   G  |- t \in T ->
   (forall x, appears_free_in x t -> G x = G' x) ->
   G' |- t \in T.
-
 Proof.
   Admitted.
 

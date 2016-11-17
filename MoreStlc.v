@@ -615,6 +615,13 @@ if 3=0 then 1 else 3 * (fix F (pred 3))
            else 1 + (halve (pred (pred x))))
 
 (* FILL IN HERE *)
+ halve = 
+       fix
+         (\f:Nat->Nat.
+            \x:Nat. 
+               if x=0 then 0 
+               else if (pred x)=0 then 0
+               else 1 + (f (pred (pred x))))
 []
 *)
 
@@ -624,6 +631,17 @@ if 3=0 then 1 else 3 * (fix F (pred 3))
     rules for arithmetic operations).
 
     (* FILL IN HERE *)
+      fact 1
+      = fix 
+        (\f:Nat->Nat. \x:Nat. if x=0 then 1 else x * (f (pred x))) 1
+    => (\x: Nat. if x = 0 then 1 else x * (fact (pred x))) 1
+    => if 1 = 0 then 1 else 1 * (fact (pred 1)))
+    => 1 * (fact (pred 1)))
+    => 1 * ((\x:Nat. if x=0 then 1 else x * (fact (pred x))) (pred 1))
+    => 1 * ((\x:Nat. if x=0 then 1 else x * (fact (pred x))) 0)
+    => 1 * (if 0=0 then 1 else 0 * (fact (pred 0)))
+    => 1 * 1
+    => 1
 []
 *)
 
@@ -976,6 +994,8 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
       tsnd (subst x s t1)
   | tunit => tunit
   (* FILL IN HERE *)
+  | tlet y t1 t2 => 
+      tlet y (subst x s t1) (if beq_id x y then t2 else (subst x s t2))
   | tinl T t1 =>
       tinl T (subst x s t1)
   | tinr T t1 =>
@@ -995,7 +1015,7 @@ Fixpoint subst (x:id) (s:tm) (t:tm) : tm :=
          else if beq_id x y2 then t3
               else (subst x s t3))
   (* FILL IN HERE *)
-  | _ => t  (* ... and delete this line *)
+  | tfix t => tfix (subst x s t)  (* ... and delete this line *)
   end.
 
 Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
@@ -1100,6 +1120,12 @@ Inductive step : tm -> tm -> Prop :=
         (tsnd (tpair v1 v2)) ==> v2
   (* let *)
   (* FILL IN HERE *)
+  | ST_Let1 : forall x t1 t1' t2,
+       t1 ==> t1' ->
+       (tlet x t1 t2) ==> (tlet x t1' t2)
+  | ST_LetValue : forall x v1 t2,
+       value v1 ->
+       (tlet x v1 t2) ==> (subst x v1 t2)
   (* sums *)
   | ST_Inl : forall t1 t1' T,
         t1 ==> t1' ->
@@ -1135,6 +1161,12 @@ Inductive step : tm -> tm -> Prop :=
        (tlcase (tcons v1 vl) t2 x1 x2 t3) ==> (subst x2 vl (subst x1 v1 t3))
   (* fix *)
   (* FILL IN HERE *)
+  | ST_Fix1 : forall t1 t1',
+       t1 ==> t1' ->
+       (tfix t1) ==> (tfix t1')
+  | ST_FixAbs : forall x T1 t12,
+       (tfix (tabs x T1 t12)) ==> 
+       (subst x (tfix (tabs x T1 t12)) t12)
 
 where "t1 '==>' t2" := (step t1 t2).
 
@@ -1199,6 +1231,10 @@ Inductive has_type : context -> tm -> ty -> Prop :=
       Gamma |- tunit \in TUnit
   (* let *)
   (* FILL IN HERE *)
+  | T_Let : forall Gamma x t1 T1 t2 T2,
+      Gamma |- t1 \in T1 ->
+      (update Gamma x T1) |- t2 \in T2 ->
+      Gamma |- (tlet x t1 t2) \in T2
   (* sums *)
   | T_Inl : forall Gamma t1 T1 T2,
       Gamma |- t1 \in T1 ->
@@ -1225,6 +1261,9 @@ Inductive has_type : context -> tm -> ty -> Prop :=
       Gamma |- (tlcase t1 t2 x1 x2 t3) \in T2
   (* fix *)
   (* FILL IN HERE *)
+  | T_Fix : forall Gamma t1 T1,
+      Gamma |- t1 \in (TArrow T1 T1) ->
+      Gamma |- (tfix t1) \in T1
 
 where "Gamma '|-' t '\in' T" := (has_type Gamma t T).
 
@@ -1776,6 +1815,10 @@ Proof with eauto.
     left...
   (* let *)
   (* FILL IN HERE *)
+  - right.
+    destruct IHHt1...
+    + inversion H as [t1' Hstp].
+      exists (tlet x t1' t2)...
   - (* T_Inl *)
     destruct IHHt...
     + (* t1 steps *)
@@ -1824,6 +1867,13 @@ Proof with eauto.
       exists (tlcase t1' t2 x1 x2 t3)...
   (* fix *)
   (* FILL IN HERE *)
+  - right.
+    destruct IHHt...
+    + inversion H; subst; try solve [inversion Ht ;
+      exists ([x:=tfix (tabs x T11 t12)]t12)].
+      exists ([x:=tfix (tabs x T11 t12)]t12)...
+    + inversion H as [t1' H0].
+      exists (tfix t1')...
 Qed.
 
 (* ----------------------------------------------------------------- *)
@@ -1877,6 +1927,13 @@ Inductive appears_free_in : id -> tm -> Prop :=
       appears_free_in x (tsnd t)
   (* let *)
   (* FILL IN HERE *)
+  | afi_let1 : forall x y t1 t2,
+     appears_free_in x t1 ->
+     appears_free_in x (tlet y t1 t2)
+  | afi_let2 : forall x y t1 t2,
+     y <> x ->
+     appears_free_in x t2 ->
+     appears_free_in x (tlet y t1 t2)
   (* sums *)
   | afi_inl : forall x t T,
       appears_free_in x t ->
@@ -1915,6 +1972,9 @@ Inductive appears_free_in : id -> tm -> Prop :=
      appears_free_in x (tlcase t1 t2 y1 y2 t3)
   (* fix *)
   (* FILL IN HERE *)
+  | afi_fix : forall x t,
+     appears_free_in x t -> 
+     appears_free_in x (tfix t)
 .
 
 Hint Constructors appears_free_in.
@@ -1941,6 +2001,13 @@ Proof with eauto.
     apply T_Pair...
   (* let *)
   (* FILL IN HERE *)
+  - eapply T_Let... apply IHhas_type2. intros y Hafi.
+    unfold update.
+    destruct (beq_idP x y)...
+    unfold t_update.
+    destruct (beq_idP x y)...
+    unfold t_update.
+    destruct (beq_idP x y)...
   - (* T_Case *)
     eapply T_Case...
     + apply IHhas_type2. intros y Hafi.
@@ -1971,6 +2038,10 @@ Proof with eauto.
     rewrite false_beq_id in Hctx...
   (* let *)
   (* FILL IN HERE *)
+  - clear Htyp1 IHHtyp1. destruct IHHtyp2 as [T' Hctx]... 
+    exists T'. unfold update in Hctx. 
+    apply beq_id_false_iff in H2. unfold t_update in Hctx.
+    rewrite H2 in Hctx...
   (* T_Case *)
   - (* left *)
     destruct IHHtyp2 as [T' Hctx]... exists T'.
@@ -1990,7 +2061,16 @@ Qed.
 
 (* ----------------------------------------------------------------- *)
 (** *** Substitution *)
-
+Require Export Arith.EqNat. 
+Theorem beq_id_eq : forall i1 i2,
+  true = beq_id i1 i2 -> i1 = i2.
+Proof.
+  intros i1 i2 H.
+  destruct i1. destruct i2.
+  apply beq_nat_eq in H. subst.
+  reflexivity. 
+Qed.
+  
 Lemma substitution_preserves_typing : forall Gamma x U v t S,
      (update Gamma x U) |- t \in S  ->
      empty |- v \in U   ->
@@ -2074,6 +2154,22 @@ Proof with eauto.
       rewrite false_beq_id...
   (* let *)
   (* FILL IN HERE *)
+  - simpl. rename i into y.
+    eapply T_Let... remember (beq_id x y) as e. destruct e.
+    + apply beq_id_eq in Heqe. subst.
+      eapply context_invariance... intros z Hafi.
+      unfold update.
+      destruct (beq_id y z)...
+      unfold t_update. destruct (beq_id y z)...
+      unfold t_update. destruct (beq_id y z)...
+    + apply IHt2. eapply context_invariance...
+      intros z Hafi. unfold update.
+      remember (beq_id y z) as e. destruct e...
+      apply beq_id_eq in Heqe0. subst.
+      unfold t_update.
+      rewrite <- Heqe...
+      unfold t_update.  
+      rewrite <- Heqe0...
   - (* tcase *)
     rename i into x1. rename i0 into x2.
     eapply T_Case...
@@ -2173,6 +2269,8 @@ Proof with eauto.
     inversion HT...
   (* let *)
   (* FILL IN HERE *)
+  -
+    + apply substitution_preserves_typing with T1...
   (* T_Case *)
   - (* ST_CaseInl *)
     inversion HT1; subst.
@@ -2187,6 +2285,8 @@ Proof with eauto.
       apply substitution_preserves_typing with T1...
   (* fix *)
   (* FILL IN HERE *)
+  - inversion HT; subst.
+    apply substitution_preserves_typing with T1...
 Qed.
 (** [] *)
 
