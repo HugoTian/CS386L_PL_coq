@@ -1,0 +1,8 @@
+DIGEST 11d1be843254bc0ac56e42803434e091
+Fproject
+R278:290 Coq.Bool.Bool <> <> lib
+R308:322 Coq.Arith.Arith <> <> lib
+R340:354 Coq.Arith.EqNat <> <> lib
+R372:386 Coq.omega.Omega <> <> lib
+R404:417 Coq.Lists.List <> <> lib
+R435:468 Coq.Logic.FunctionalExtensionality <> <> lib

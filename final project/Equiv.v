@@ -1,4 +1,12 @@
-(** * Equiv: Program Equivalence *)
+(**
+*  CS386L Programming Languages
+* Final project
+* Tian Zhang (tz3272)
+* Brief Introduction:
+*     For the final project, I am working on partial evaluation, and 
+      all the work is based on Maps, Imp in class. I got some idea from
+      the book, as 
+*)
 
 
 Require Import Coq.Bool.Bool.
@@ -11,43 +19,14 @@ Import ListNotations.
 Require Import Maps.
 Require Import Imp.
 
-(** *** Some general advice for working on exercises:
-
-    - Most of the Coq proofs we ask you to do are similar to proofs
-      that we've provided.  Before starting to work on exercises
-      problems, take the time to work through our proofs (both
-      informally, on paper, and in Coq) and make sure you understand
-      them in detail.  This will save you a lot of time.
-
-    - The Coq proofs we're doing now are sufficiently complicated that
-      it is more or less impossible to complete them simply by random
-      experimentation or "following your nose."  You need to start
-      with an idea about why the property is true and how the proof is
-      going to go.  The best way to do this is to write out at least a
-      sketch of an informal proof on paper -- one that intuitively
-      convinces you of the truth of the theorem -- before starting to
-      work on the formal one.  Alternately, grab a friend and try to
-      convince them that the theorem is true; then try to formalize
-      your explanation.
-
-    - Use automation to save work!  Some of the proofs in this
-      chapter's exercises are pretty long if you try to write out all
-      the cases explicitly. *)
 
 (* ################################################################# *)
-(** * Behavioral Equivalence *)
+(** * Constant Folding*)
 
-(** In an earlier chapter, we investigated the correctness of a very
-    simple program transformation: the [optimize_0plus] function.  The
-    programming language we were considering was the first version of
-    the language of arithmetic expressions -- with no variables -- so
-    in that setting it was very easy to define what it means for a
-    program transformation to be correct: it should always yield a
-    program that evaluates to the same number as the original.
+(** before partial evalation, the first part I want to implement
+  a more simple idea, constant folding*)
 
-    To go further and talk about the correctness of program
-    transformations in the full Imp language, we need to consider the
-    role of variables and state. *)
+
 
 (* ================================================================= *)
 (** ** Definitions *)
@@ -65,16 +44,6 @@ Definition bequiv (b1 b2 : bexp) : Prop :=
   forall (st:state),
     beval st b1 = beval st b2.
 
-(** For commands, the situation is a little more subtle.  We can't
-    simply say "two commands are behaviorally equivalent if they
-    evaluate to the same ending state whenever they are started in the
-    same initial state," because some commands, when run in some
-    starting states, don't terminate in any final state at all!  What
-    we need instead is this: two commands are behaviorally equivalent
-    if, for any given starting state, they either both diverge or both
-    terminate in the same final state.  A compact way to express this
-    is "if the first one terminates in a particular state then so does
-    the second, and vice versa." *)
 
 Definition cequiv (c1 c2 : com) : Prop :=
   forall (st st' : state),
@@ -323,37 +292,7 @@ Proof.
     rewrite Hb.
     reflexivity.  Qed.
 
-(** **** Exercise: 2 stars, advanced, optional (WHILE_false_informal)  *)
-(** Write an informal proof of [WHILE_false].
 
-(* FILL IN HERE *)
-[]
-*)
-
-(** To prove the second fact, we need an auxiliary lemma stating that
-    [WHILE] loops whose guards are equivalent to [BTrue] never
-    terminate:
-
-    _Lemma_: If [b] is equivalent to [BTrue], then it cannot be the
-    case that [(WHILE b DO c END) / st \\ st'].
-
-    _Proof_: Suppose that [(WHILE b DO c END) / st \\ st'].  We show,
-    by induction on a derivation of [(WHILE b DO c END) / st \\ st'],
-    that this assumption leads to a contradiction.
-
-      - Suppose [(WHILE b DO c END) / st \\ st'] is proved using rule
-        [E_WhileEnd].  Then by assumption [beval st b = false].  But
-        this contradicts the assumption that [b] is equivalent to
-        [BTrue].
-
-      - Suppose [(WHILE b DO c END) / st \\ st'] is proved using rule
-        [E_WhileLoop].  Then we are given the induction hypothesis
-        that [(WHILE b DO c END) / st \\ st'] is contradictory, which
-        is exactly what we are trying to prove!
-
-      - Since these are the only rules that could have been used to
-        prove [(WHILE b DO c END) / st \\ st'], the other cases of
-        the induction are immediately contradictory. [] *)
 
 Lemma WHILE_true_nonterm : forall b c st st',
      bequiv b BTrue ->
@@ -910,99 +849,7 @@ Proof.
          destruct (fold_constants_aexp a2);
          rewrite IHa1; rewrite IHa2; reflexivity). Qed.
 
-(** **** Exercise: 3 stars, optional (fold_bexp_Eq_informal)  *)
-(** Here is an informal proof of the [BEq] case of the soundness
-    argument for boolean expression constant folding.  Read it
-    carefully and compare it to the formal proof that follows.  Then
-    fill in the [BLe] case of the formal proof (without looking at the
-    [BEq] case, if possible).
 
-   _Theorem_: The constant folding function for booleans,
-   [fold_constants_bexp], is sound.
-
-   _Proof_: We must show that [b] is equivalent to [fold_constants_bexp],
-   for all boolean expressions [b].  Proceed by induction on [b].  We
-   show just the case where [b] has the form [BEq a1 a2].
-
-   In this case, we must show
-
-       beval st (BEq a1 a2)
-     = beval st (fold_constants_bexp (BEq a1 a2)).
-
-   There are two cases to consider:
-
-     - First, suppose [fold_constants_aexp a1 = ANum n1] and
-       [fold_constants_aexp a2 = ANum n2] for some [n1] and [n2].
-
-       In this case, we have
-
-           fold_constants_bexp (BEq a1 a2)
-         = if beq_nat n1 n2 then BTrue else BFalse
-
-       and
-
-           beval st (BEq a1 a2)
-         = beq_nat (aeval st a1) (aeval st a2).
-
-       By the soundness of constant folding for arithmetic
-       expressions (Lemma [fold_constants_aexp_sound]), we know
-
-           aeval st a1
-         = aeval st (fold_constants_aexp a1)
-         = aeval st (ANum n1)
-         = n1
-
-       and
-
-           aeval st a2
-         = aeval st (fold_constants_aexp a2)
-         = aeval st (ANum n2)
-         = n2,
-
-       so
-
-           beval st (BEq a1 a2)
-         = beq_nat (aeval a1) (aeval a2)
-         = beq_nat n1 n2.
-
-       Also, it is easy to see (by considering the cases [n1 = n2] and
-       [n1 <> n2] separately) that
-
-           beval st (if beq_nat n1 n2 then BTrue else BFalse)
-         = if beq_nat n1 n2 then beval st BTrue else beval st BFalse
-         = if beq_nat n1 n2 then true else false
-         = beq_nat n1 n2.
-
-       So
-
-           beval st (BEq a1 a2)
-         = beq_nat n1 n2.
-         = beval st (if beq_nat n1 n2 then BTrue else BFalse),
-
-       as required.
-
-     - Otherwise, one of [fold_constants_aexp a1] and
-       [fold_constants_aexp a2] is not a constant.  In this case, we
-       must show
-
-           beval st (BEq a1 a2)
-         = beval st (BEq (fold_constants_aexp a1)
-                         (fold_constants_aexp a2)),
-
-       which, by the definition of [beval], is the same as showing
-
-           beq_nat (aeval st a1) (aeval st a2)
-         = beq_nat (aeval st (fold_constants_aexp a1))
-                   (aeval st (fold_constants_aexp a2)).
-
-       But the soundness of constant folding for arithmetic
-       expressions ([fold_constants_aexp_sound]) gives us
-
-         aeval st a1 = aeval st (fold_constants_aexp a1)
-         aeval st a2 = aeval st (fold_constants_aexp a2),
-
-       completing the case.  []
-*)
 
 Theorem fold_constants_bexp_sound:
   btrans_sound fold_constants_bexp.
@@ -1550,89 +1397,6 @@ Proof. (* FILL IN HERE *) Admitted.
 
 End Himp.
 
-(* ################################################################# *)
-(** * Additional Exercises *)
-
-(** **** Exercise: 4 stars, optional (for_while_equiv)  *)
-(** This exercise extends the optional [add_for_loop] exercise from
-    the [Imp] chapter, where you were asked to extend the language 
-    of commands with C-style [for] loops.  Prove that the command:
-
-      for (c1 ; b ; c2) {
-          c3
-      }
-
-    is equivalent to:
-
-       c1 ;
-       WHILE b DO
-         c3 ;
-         c2
-       END
-*)
-(* FILL IN HERE *)
-(** [] *)
-
-(** **** Exercise: 3 stars, optional (swap_noninterfering_assignments)  *)
-(** (Hint: You'll need [functional_extensionality] for this one.) *)
-
-Theorem swap_noninterfering_assignments: forall l1 l2 a1 a2,
-  l1 <> l2 ->
-  var_not_used_in_aexp l1 a2 ->
-  var_not_used_in_aexp l2 a1 ->
-  cequiv
-    (l1 ::= a1;; l2 ::= a2)
-    (l2 ::= a2;; l1 ::= a1).
-Proof.
-(* FILL IN HERE *) Admitted.
-(** [] *)
-
-(** **** Exercise: 4 stars, advanced, optional (capprox)  *)
-
-(** In this exercise we define an asymmetric variant of program
-    equivalence we call _program approximation_. We say that a
-    program [c1] _approximates_ a program [c2] when, for each of
-    the initial states for which [c1] terminates, [c2] also terminates
-    and produces the same final state. Formally, program approximation
-    is defined as follows: *)
-
-Definition capprox (c1 c2 : com) : Prop := forall (st st' : state),
-  c1 / st \\ st' -> c2 / st \\ st'.
-
-(** For example, the program [c1 = WHILE X <> 1 DO X ::= X - 1 END]
-    approximates [c2 = X ::= 1], but [c2] does not approximate [c1]
-    since [c1] does not terminate when [X = 0] but [c2] does.  If two
-    programs approximate each other in both directions, then they are
-    equivalent. *)
-
-(** Find two programs [c3] and [c4] such that neither approximates
-    the other. *)
-
-Definition c3 : com (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
-Definition c4 : com (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
-
-Theorem c3_c4_different : ~ capprox c3 c4 /\ ~ capprox c4 c3.
-Proof. (* FILL IN HERE *) Admitted.
-
-(** Find a program [cmin] that approximates every other program. *)
-
-Definition cmin : com 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
-
-Theorem cmin_minimal : forall c, capprox cmin c.
-Proof. (* FILL IN HERE *) Admitted.
-
-(** Finally, find a non-trivial property which is preserved by
-    program approximation (when going from left to right). *)
-
-Definition zprop (c : com) : Prop 
-  (* REPLACE THIS LINE WITH   := _your_definition_ . *) . Admitted.
 
 
-Theorem zprop_preserving : forall c c',
-  zprop c -> capprox c c' -> zprop c'.
-Proof. (* FILL IN HERE *) Admitted.
-(** [] *)
-
-(** $Date: 2016-07-13 11:41:41 -0500 (Wed, 13 Jul 2016) $ *)
 
