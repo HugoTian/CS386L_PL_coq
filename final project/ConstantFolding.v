@@ -5,7 +5,7 @@
 * Brief Introduction:
 *     For the final project, I am working on partial evaluation, and 
       all the work is based on Maps, Imp in class. I got some idea from
-      the book, as 
+      the book
 *)
 
 
@@ -20,8 +20,6 @@ Require Import Maps.
 Require Import Imp.
 
 
-(* ################################################################# *)
-(** * Constant Folding*)
 
 (** before partial evalation, the first part I want to implement
   a more simple idea, constant folding
@@ -29,6 +27,9 @@ Require Import Imp.
   An expression is constant when it contains no variable
   references. Constant folding is an optimization that finds constant
   expressions and replaces them by their values. 
+  
+  Some definition and proof idea is followed equiv.v in the software
+  foundation book
 *)
 
 Fixpoint fold_constants_aexp (a : aexp) : aexp :=
