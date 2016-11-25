@@ -3,12 +3,12 @@
 * Final project
 * Tian Zhang (tz3272)
 * Brief Introduction:
-*     For the final project, I am working on partial evaluation, and 
+*     For this file, I am working on constant folding, and 
       all the work is based on Maps, Imp in class. I got some idea from
       the book
 *)
 
-
+Require Import ProgramEquivalence.
 Require Import Coq.Bool.Bool.
 Require Import Coq.Arith.Arith.
 Require Import Coq.Arith.EqNat.
@@ -18,8 +18,6 @@ Require Import Coq.Logic.FunctionalExtensionality.
 Import ListNotations.
 Require Import Maps.
 Require Import Imp.
-
-
 
 (** before partial evalation, the first part I want to implement
   a more simple idea, constant folding
@@ -109,6 +107,7 @@ Example fold_bexp_ex1 :
 Proof. reflexivity. Qed.
 
 (** the next step is to fold constant in command*)
+
 Fixpoint fold_constants_com (c : com) : com :=
   match c with
   | SKIP      =>
@@ -169,332 +168,13 @@ Example fold_com_ex1 :
 Proof. reflexivity. Qed.
 
 (** Now we have constant folding, we need to prove that, after folding,
-  the program is correct*)
-  
-(** Here is some definition in equiv.v to help prove that constant 
-  folding is correct*)
-  
-  
-(** First, we need to introduce the behaviorally equivalent 
-    that two aexp or bexp are behaviorally equivalent if they
-    evaluate to the same result in every state. *)
-
-Definition aequiv (a1 a2 : aexp) : Prop :=
-  forall (st:state),
-    aeval st a1 = aeval st a2.
-
-Definition bequiv (b1 b2 : bexp) : Prop :=
-  forall (st:state),
-    beval st b1 = beval st b2.
-
-
-Definition cequiv (c1 c2 : com) : Prop :=
-  forall (st st' : state),
-    (c1 / st \\ st') <-> (c2 / st \\ st').
-
-(** ** Behavioral Equivalence Is an Equivalence
-    the equivalence can be proved by reflexive,
-    symmetric, and transitive. *)
-
-Lemma refl_aequiv : forall (a : aexp), aequiv a a.
-Proof.
-  intros a st. reflexivity.  Qed.
-
-Lemma sym_aequiv : forall (a1 a2 : aexp),
-  aequiv a1 a2 -> aequiv a2 a1.
-Proof.
-  intros a1 a2 H. intros st. symmetry. apply H.  Qed.
-
-Lemma trans_aequiv : forall (a1 a2 a3 : aexp),
-  aequiv a1 a2 -> aequiv a2 a3 -> aequiv a1 a3.
-Proof.
-  unfold aequiv. intros a1 a2 a3 H12 H23 st.
-  rewrite (H12 st). rewrite (H23 st). reflexivity.  Qed.
-
-Lemma refl_bequiv : forall (b : bexp), bequiv b b.
-Proof.
-  unfold bequiv. intros b st. reflexivity.  Qed.
-
-Lemma sym_bequiv : forall (b1 b2 : bexp),
-  bequiv b1 b2 -> bequiv b2 b1.
-Proof.
-  unfold bequiv. intros b1 b2 H. intros st. symmetry. apply H.  Qed.
-
-Lemma trans_bequiv : forall (b1 b2 b3 : bexp),
-  bequiv b1 b2 -> bequiv b2 b3 -> bequiv b1 b3.
-Proof.
-  unfold bequiv. intros b1 b2 b3 H12 H23 st.
-  rewrite (H12 st). rewrite (H23 st). reflexivity.  Qed.
-
-Lemma refl_cequiv : forall (c : com), cequiv c c.
-Proof.
-  unfold cequiv. intros c st st'. apply iff_refl.  Qed.
-
-Lemma sym_cequiv : forall (c1 c2 : com),
-  cequiv c1 c2 -> cequiv c2 c1.
-Proof.
-  unfold cequiv. intros c1 c2 H st st'.
-  assert (c1 / st \\ st' <-> c2 / st \\ st') as H'.
-  { (* Proof of assertion *) apply H. }
-  apply iff_sym. assumption.
-Qed.
-
-Lemma iff_trans : forall (P1 P2 P3 : Prop),
-  (P1 <-> P2) -> (P2 <-> P3) -> (P1 <-> P3).
-Proof.
-  intros P1 P2 P3 H12 H23.
-  inversion H12. inversion H23.
-  split; intros A.
-    apply H1. apply H. apply A.
-    apply H0. apply H2. apply A.  Qed.
-
-Lemma trans_cequiv : forall (c1 c2 c3 : com),
-  cequiv c1 c2 -> cequiv c2 c3 -> cequiv c1 c3.
-Proof.
-  unfold cequiv. intros c1 c2 c3 H12 H23 st st'.
-  apply iff_trans with (c2 / st \\ st'). apply H12. apply H23.  Qed.
-
-(** Prove that adding a SKIP after a command results in an
-    equivalent program *)
+  the program is correct, we already prove the program equivalence in
+  programEquivalence , and we will use it to prove constant propagation
     
-Theorem IFB_true: forall b c1 c2,
-     bequiv b BTrue  ->
-     cequiv
-       (IFB b THEN c1 ELSE c2 FI)
-       c1.
-Proof.
-  intros b c1 c2 Hb.
-  split; intros H.
-  - (* -> *)
-    inversion H; subst.
-    + (* b evaluates to true *)
-      assumption.
-    + (* b evaluates to false (contradiction) *)
-      unfold bequiv in Hb. simpl in Hb.
-      rewrite Hb in H5.
-      inversion H5.
-  - (* <- *)
-    apply E_IfTrue; try assumption.
-    unfold bequiv in Hb. simpl in Hb.
-    rewrite Hb. reflexivity.  Qed.
-
-Theorem IFB_false: forall b c1 c2,
-  bequiv b BFalse  ->
-  cequiv 
-    (IFB b THEN c1 ELSE c2 FI) 
-    c2.
-Proof.
-  intros b c1 c2 Hb.
-  split; intros H.
-  - (* -> *)
-    inversion H; subst.
-    + (* b => true *)
-    unfold bequiv in Hb.
-    rewrite Hb in H5. inversion H5.
-    + (* b => false *)
-    assumption.
-  - (* <- *)
-    apply E_IfFalse.
-    unfold bequiv in Hb.
-    simpl in Hb. apply Hb.
-    assumption.
-Qed.
-
-(** A loop whose guard is equivalent to BFalse is equivalent to SKIP,
-    while a loop whose guard is equivalent to [BTrue] is equivalent to
-    WHILE BTrue DO SKIP END  *)
-
-Theorem WHILE_false : forall b c,
-     bequiv b BFalse ->
-     cequiv
-       (WHILE b DO c END)
-       SKIP.
-Proof.
-  intros b c Hb. split; intros H.
-  - (* -> *)
-    inversion H; subst.
-    + (* E_WhileEnd *)
-      apply E_Skip.
-    + (* E_WhileLoop *)
-      rewrite Hb in H2. inversion H2.
-  - (* <- *)
-    inversion H; subst.
-    apply E_WhileEnd.
-    rewrite Hb.
-    reflexivity.  Qed.
-    
-Lemma WHILE_true_nonterm : forall b c st st',
-     bequiv b BTrue ->
-     ~( (WHILE b DO c END) / st \\ st' ).
-Proof.
-  (* WORKED IN CLASS *)
-  intros b c st st' Hb.
-  intros H.
-  remember (WHILE b DO c END) as cw eqn:Heqcw.
-  induction H;
-    (* Most rules don't apply, and we can rule them out
-       by inversion *)
-    inversion Heqcw; subst; clear Heqcw.
-  (* The two interesting cases are the ones for WHILE loops: *)
-  - (* E_WhileEnd *) (* contradictory -- b is always true! *)
-    unfold bequiv in Hb.
-    (* [rewrite] is able to instantiate the quantifier in [st] *)
-    rewrite Hb in H. inversion H.
-  - (* E_WhileLoop *) (* immediate from the IH *)
-    apply IHceval2. reflexivity.  Qed.
-
-Theorem ex_falso_quodlibet : forall (P:Prop), False -> P.
-Proof.
-  intros. inversion H.
-Qed.
-
-Lemma skip_state : forall st st',
-                     SKIP / st \\ st' -> st = st'.
-Proof.
-  intros.
-  inversion H. subst.
-  reflexivity.
-Qed.
-
-Theorem WHILE_true: forall b c,
-     bequiv b BTrue  ->
-     cequiv 
-       (WHILE b DO c END)
-       (WHILE BTrue DO SKIP END).
-Proof.
-  intros.
-  intros st st'. split.
-  - (* -> *) 
-    intros.
-    apply WHILE_true_nonterm with (c:=c) (st:=st) (st':=st') in H.
-    apply ex_falso_quodlibet.
-    apply H in H0. assumption.
-  - (* <- *)
-  intros.
-  remember (WHILE BTrue DO SKIP END).
-  induction H0; inversion Heqc0. 
-    + (* E_WhileEnd *)
-  subst. simpl in H0. inversion H0.
-    + (* E_WhileLoop *)
-  subst.
-  clear IHceval1.
-  rename H0_ into Hst.
-  apply skip_state in Hst.
-  rewrite Hst.
-  apply IHceval2.
-  assumption.
-Qed.
-
-(** ** Behavioral Equivalence Is a Congruence *)
-
-(** behavioral equivalence is also a congruence
-    The equivalence of two subprograms implies the
-    equivalence of the larger programs in which they are embedded *)
-
-Theorem CAss_congruence : forall i a1 a1',
-  aequiv a1 a1' ->
-  cequiv (CAss i a1) (CAss i a1').
-Proof.
-  intros i a1 a2 Heqv st st'.
-  split; intros Hceval.
-  - (* -> *)
-    inversion Hceval. subst. apply E_Ass.
-    rewrite Heqv. reflexivity.
-  - (* <- *)
-    inversion Hceval. subst. apply E_Ass.
-    rewrite Heqv. reflexivity.  
-Qed.
-
-Theorem CWhile_congruence : forall b1 b1' c1 c1',
-  bequiv b1 b1' -> cequiv c1 c1' ->
-  cequiv (WHILE b1 DO c1 END) (WHILE b1' DO c1' END).
-Proof.
-  (* WORKED IN CLASS *)
-  unfold bequiv,cequiv.
-  intros b1 b1' c1 c1' Hb1e Hc1e st st'.
-  split; intros Hce.
-  - (* -> *)
-    remember (WHILE b1 DO c1 END) as cwhile
-      eqn:Heqcwhile.
-    induction Hce; inversion Heqcwhile; subst.
-    + (* E_WhileEnd *)
-      apply E_WhileEnd. rewrite <- Hb1e. apply H.
-    + (* E_WhileLoop *)
-      apply E_WhileLoop with (st' := st').
-      * (* show loop runs *) rewrite <- Hb1e. apply H.
-      * (* body execution *)
-        apply (Hc1e st st').  apply Hce1.
-      * (* subsequent loop execution *)
-        apply IHHce2. reflexivity.
-  - (* <- *)
-    remember (WHILE b1' DO c1' END) as c'while
-      eqn:Heqc'while.
-    induction Hce; inversion Heqc'while; subst.
-    + (* E_WhileEnd *)
-      apply E_WhileEnd. rewrite -> Hb1e. apply H.
-    + (* E_WhileLoop *)
-      apply E_WhileLoop with (st' := st').
-      * (* show loop runs *) rewrite -> Hb1e. apply H.
-      * (* body execution *)
-        apply (Hc1e st st').  apply Hce1.
-      * (* subsequent loop execution *)
-        apply IHHce2. reflexivity.  Qed.
-
-
-Theorem CSeq_congruence : forall c1 c1' c2 c2',
-  cequiv c1 c1' -> cequiv c2 c2' ->
-  cequiv (c1;;c2) (c1';;c2').
-Proof.
-  intros. unfold cequiv. split; intros He.
-  - (* <- *)
-  unfold cequiv in *. inversion He. subst.
-  apply H with (st':=st'0) in H3.
-  apply H0 with (st:=st'0) in H6.
-  apply E_Seq with (st':=st'0). assumption.
-  assumption.
-  - (* -> *)
-  unfold cequiv in *.
-  inversion He. subst.
-  apply H with (st':=st'0) in H3.
-  apply H0 with (st:=st'0) in H6.
-  apply E_Seq with (st':=st'0).
-  assumption.
-  assumption.
-Qed.
-
-Theorem CIf_congruence : forall b b' c1 c1' c2 c2',
-  bequiv b b' -> cequiv c1 c1' -> cequiv c2 c2' ->
-  cequiv (IFB b THEN c1 ELSE c2 FI)
-         (IFB b' THEN c1' ELSE c2' FI).
-Proof.
-  intros.
-  unfold cequiv.
-  split; intro He.
-  - (* -> *)
-  unfold cequiv in *.
-  unfold bequiv in H.
-  inversion He; subst.
-    + (* b => true *)
-    apply E_IfTrue. rewrite H in H7. assumption.
-    rewrite H0 in H8. assumption.
-    + (* b => false *)
-    apply E_IfFalse. rewrite H in H7. assumption.
-    rewrite H1 in H8. assumption.
-  - (* <- *)
-  unfold cequiv in *.
-  unfold bequiv in H.
-  symmetry in H.
-  inversion He; subst.
-     + (* b => true *)
-  apply E_IfTrue. rewrite H in H7. assumption.
-  rewrite <- H0 in H8. assumption.
-     + (* b => false *)
-  apply E_IfFalse. rewrite H in H7. assumption.
-  rewrite <- H1 in H8. assumption.
-Qed.
-
-
-(** A program transformation is _sound_ if it preserves the
+*)
+  
+  
+(** A program transformation is sound if it preserves the
     behavior of the original program. *)
 
 Definition atrans_sound (atrans : aexp -> aexp) : Prop :=
