@@ -22,6 +22,7 @@ Require Import Imp.
 
 (** Now we have prove that program are equivalent,
  the next step is to prove that programs are not equivalent 
+ some idea in this file comes from equiv.v file from the book
 *)
 
 
@@ -94,14 +95,13 @@ Definition subst_equiv_property := forall i1 i2 a1 a2,
     where [st2 = { X |-> 1, Y |-> 2 }].  Note that [st1 <> st2]; this
     is a contradiction, since [ceval] is deterministic!  [] *)
 
-(**Then the next step is to prove this inequiv*)
+(** Since we have counter example, then the next step is to prove this inequiv*)
 
 Theorem subst_inequiv :
   ~ subst_equiv_property.
 Proof.
   unfold subst_equiv_property.
   intros Contra.
-
   (* Here is the counterexample: assuming that [subst_equiv_property]
      holds allows us to prove that these two programs are
      equivalent... *)

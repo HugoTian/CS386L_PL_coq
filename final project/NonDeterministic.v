@@ -160,7 +160,9 @@ left.
 Qed.
 
 
-(** Here is the second example, havoc_copy *)
+(** Here is the second example, havoc_copy, and we want to see
+  whether non-deteminisitic copy is equivalent to variable initialization
+ *)
 
 
 Definition ptwice :=
@@ -205,7 +207,7 @@ Proof.
     unfold t_update in H0. simpl in H0. rewrite H0 in Heqb. inversion Heqb.
 Qed.
 
-(** This part illustrate the phenomenon of nondeterministic about loop.
+(** The following part illustrate the phenomenon of nondeterministic about loop.
     In a language,
     with nondeterminism, some programs always terminate,
     some programs always diverge, and some programs can
@@ -215,7 +217,9 @@ Qed.
 
 (** below part is the advanced exercise in equiv.v about nondeterminism  *)
 
-(** Prove that [p1] and [p2] are equivalent. *)
+(** Prove that [p1] and [p2] are equivalent.
+  
+ *)
 
 
 Definition p1 : com :=
@@ -234,7 +238,7 @@ Definition p2 : com :=
     same state they started in.  
     
     We can capture the termination
-    behavior of [p1] and [p2] individually with these lemmas: *)
+    behavior of p1 and p2 individually with these lemmas: *)
 
 Lemma WHILE_true_nonterm : forall (P : state -> Prop) (b : bexp) (c : com),
   (forall (st : state), P st -> beval st b = true) ->
@@ -263,6 +267,7 @@ Proof.
   apply Contra1.
   reflexivity. Qed.
 
+(** lemma for condition evaluation for while loop*)
 
 Lemma p1p2_cond_eval : forall (st : state),
   st X <> 0 ->
@@ -314,7 +319,7 @@ Proof.
 
   assumption. Qed.
 
-(** Next, use those lemmas to prove that [p1] and [p2] are actually
+(** Next, use those lemmas to prove that p1 and p2 are actually
     equivalent. *)
 
 Theorem p1_p2_equiv : cequiv p1 p2.

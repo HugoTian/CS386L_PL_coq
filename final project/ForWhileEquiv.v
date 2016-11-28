@@ -5,7 +5,7 @@
 * Brief Introduction:
 *     For the this file, I am working on for while loop equivalence, and 
       all the work is based on Maps, Imp in class. I got some idea from
-      the book
+      the midterm
 *)
 
 Require Import ProgramEquivalence.
@@ -20,9 +20,9 @@ Require Import Maps.
 Require Import Imp.
 
 
-(** In midterm, we extends the optional [add_for_loop] exercise from
+(** In midterm, we extends the optional add_for_loop exercise from
     the [Imp] chapter, and we were asked to extend the language 
-    of commands with C-style [for] loops. Now I want to prove that 
+    of commands with C-style for loops. Now I want to prove that 
     for command and while command are equivalent, that is
     the command:
 
@@ -80,7 +80,8 @@ Inductive ceval' : com' -> state -> state -> Prop :=
       ceval' c1 st st' ->
       ceval' (CWhile' b (CSeq' c2 c3)) st' st'' ->
       ceval' (CFor' c1 b c2 c3) st st''.
-(** [] *)
+
+(** Next step is to prove that those two programs are equivalent*)
 
 Definition cequiv_for_while (c1 c2 : com') : Prop :=
   forall st st' : state, ceval' c1 st st' <-> ceval' c2 st st'.

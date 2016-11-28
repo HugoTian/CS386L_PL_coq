@@ -169,8 +169,8 @@ Proof. reflexivity. Qed.
 
 (** Now we have constant folding, we need to prove that, after folding,
   the program is correct, we already prove the program equivalence in
-  programEquivalence , and we will use it to prove constant propagation
-    
+  programEquivalence , and we will use it to prove constant folding
+  is correct
 *)
   
   

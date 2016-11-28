@@ -5,7 +5,7 @@
 * Brief Introduction:
 *     This file contains proof for program equivalence, a starting point
 *     For my final project
-*     All the proof is based on Imp.v 
+*     All the proof is based on the language in Imp.v 
 *     Some example and proof are followed content from equiv.v
 *)
 
@@ -221,7 +221,7 @@ Proof.
 
 (** now we have lemma, we can evaluate while true *)
 
-Theorem ex_falso_quodlibet : forall (P:Prop), False -> P.
+Lemma ex_falso_quodlibet : forall (P:Prop), False -> P.
 Proof.
   intros. inversion H.
 Qed.
