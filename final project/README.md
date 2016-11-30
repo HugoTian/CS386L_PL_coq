@@ -23,7 +23,7 @@ chapter, and do not implement my own version.
 * forWhileEquiv.v : Idea comes from Midterm, prove that for and while loop are equivalent.
 * programNotEquivalence.v : define and prove that program are not equivalent. Analysis arithmetic expression substitution.
 * NonDeterministic.v : introduce Havoc, a non-deterministic command, and prove its behaviour equivalence. 
-* ConstantFolding.v : implement constant folding for Imp language, and proof its correctness
+* ConstantFolding.v : implement constant folding for Imp language, and proof its soundness
 * PartialEvaluation.v :  partial evaluation , same as PE.v, no my work in this file.
 * Map.v : solution from software foundation book
 * Imp.v : solution from software foundation book
